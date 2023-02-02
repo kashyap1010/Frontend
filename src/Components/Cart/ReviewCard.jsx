@@ -11,40 +11,46 @@ import useDidMountEffect from '../../DidMount';
 
 const ReviewCard = (props) => {
     const [product, setProduct] = useState()
-    const [count, setCount] = useState()
-    // console.log(props.item)
+    const [count, setCount] = useState(0)
+    
     useEffect(() => {
-        if(props.item){
-            api.post('/getproduct',props.item)
-            .then(res=>{
-                setProduct(res.data)
-            }).catch(err=>{
-            })
+        if (props.item) {
+            api.post('/getproduct', props.item)
+                .then(res => {
+                    setProduct(res.data)
+                   
+                }).catch(err => {
+                })
         }
-        setCount(parseInt(localStorage.getItem(props.item.productId)))
+        
+        setCount(parseInt(localStorage.getItem(props.item.productId)))   
     }, [])
+
     const handleAddtocart = () => {
-        api.post('/addtocart', { count: count, userId: props.rootUserId, productId: props.item.productId })
-            .then()
+        api.post('/addtocart', { count: count, userId: props.rootUserId, productId: props.item.productId,price:product.price,name:product.name })
+            .then(res=>{
+                props.setTotal(res.data.total)
+                props.setGst(res.data.gst)
+            })
             .catch(err => {
                 console.log(err)
             })
 
     }
-
-    useDidMountEffect(()=>{
-        console.log("product mounted")
-        if(count===0){
+    useDidMountEffect(() => {
+        if (count === 0) {
             localStorage.removeItem(props.item.productId)
         }
-        localStorage.setItem(props.item.productId,count)
-        handleAddtocart()
-    },[count])
-    if(product && !(count===0)){
+        localStorage.setItem(props.item.productId, count)
+        if(product){
+            handleAddtocart()
+        }
+    }, [count])
+    if (product && !(count === 0)) {
         return (
             <Box sx={{ borderBottom: '2px solid #a9927d' }} justifyContent={'space-between'}
-           maxHeight={'fit-content'}
-            minHeight={'8rem'} display={'flex'} flexDirection={'row'} marginY={'1rem'}>
+                maxHeight={'fit-content'}
+                minHeight={'8rem'} display={'flex'} flexDirection={'row'} marginY={'1rem'}>
                 <Box
                     m={'2%'}
                     minWidth={'30%'}
@@ -62,28 +68,29 @@ const ReviewCard = (props) => {
                 <Box display={'flex'} m={'2%'} flexDirection={'column'} justifyContent={'space-between'} alignItems={'end'}>
                     <Box display={'flex'} flexDirection={'row'}>
                         <Button
-                        onClick={()=>{
-                            setCount(count -1)
-                        }}
-                        sx={{ minHeight: 0, minWidth: 0, padding: 0 }}>
-                        <RemoveIcon />
+                            onClick={() => {
+                                setCount(count - 1)
+
+                            }}
+                            sx={{ minHeight: 0, minWidth: 0, padding: 0 }}>
+                            <RemoveIcon />
                         </Button>
                         <Typography>{count}</Typography>
                         <Button
-                        onClick={()=>{
-                            setCount(count +1)
-                        }}
-                        sx={{ minHeight: 0, minWidth: 0, padding: 0 }}>
-                        <AddIcon />
+                            onClick={() => {
+                                setCount(count + 1)
+                            }}
+                            sx={{ minHeight: 0, minWidth: 0, padding: 0 }}>
+                            <AddIcon />
                         </Button>
                     </Box>
-                    <Typography >${product.price*count}</Typography>
+                    <Typography >${(product.price * count).toFixed(2)}</Typography>
                 </Box>
             </Box>
         )
     }
-    else{
-        return(
+    else {
+        return (
             <></>
         )
     }
